@@ -1,0 +1,20 @@
+[package]
+name = "scripting-example"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wasm_component_layer = "0.1"
+wasm_runtime_layer = { version = "0.1", features = ["backend_wasmi", "backend_wasmtime"] }
+wasmi = "0.31"
+wasmtime = { version = "14.0", features = ["component-model"] }
+wabt = "0.10"
+
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-tree = "0.2"
+
+[workspace]
+members = [ "guest" ]
