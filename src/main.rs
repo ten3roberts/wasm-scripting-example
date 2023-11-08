@@ -1,6 +1,8 @@
 use tracing_subscriber::{prelude::*, registry, EnvFilter};
 use tracing_tree::HierarchicalLayer;
-use wasm_runtime_layer::{Engine, Imports, Instance, Module, Store, Value};
+use wasm_runtime_layer::{AsContextMut, Engine, Imports, Instance, Module, Store, Value};
+
+const GUEST_BYTES: &[u8] = include_bytes!("../target/wasm32-unknown-unknown/debug/guest.wasm");
 
 fn main() {
     registry()
@@ -16,35 +18,21 @@ fn main() {
     let engine = Engine::new(wasmtime::Engine::default());
     let mut store = Store::new(&engine, ());
 
-    // 2. Create modules and instances, similar to other runtimes
-    let module_bin = wabt::wat2wasm(
-        r#"
-(module
-(type $t0 (func (param i32) (result i32)))
-(func $add_one (export "add_one") (type $t0) (param $p0 i32) (result i32)
-    get_local $p0
-    i32.const 1
-    i32.add))
-"#,
-    )
-    .unwrap();
+    let module = Module::new(&engine, std::io::Cursor::new(GUEST_BYTES)).unwrap();
+    let imports = Imports::new();
+    // let imports = Imports::new().define("root", "print", store.as_context_mut();
 
-    tracing::info!("create module");
+    let instance = Instance::new(&mut store, &module, &imports).unwrap();
 
-    let module = Module::new(&engine, std::io::Cursor::new(&module_bin)).unwrap();
-    let instance = Instance::new(&mut store, &module, &Imports::default()).unwrap();
-
-    let add_one = instance
-        .get_export(&store, "add_one")
+    let run = instance
+        .get_export(&store, "run")
         .unwrap()
         .into_func()
         .unwrap();
 
-    let mut result = [Value::I32(0)];
-    add_one
-        .call(&mut store, &[Value::I32(42)], &mut result)
-        .unwrap();
+    let mut result = [];
+    run.call(&mut store, &[], &mut result).unwrap();
 
-    tracing::info!(?result, "add_one");
-    assert_eq!(result[0], Value::I32(43));
+    tracing::info!(?result, "result");
+    // assert_eq!(result[0], Value::I32(43));
 }

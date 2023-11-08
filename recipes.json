@@ -1,0 +1,18 @@
+{
+    "run-scripting": {
+        "cmd": [
+            "cargo",
+            "run",
+            "--package",
+            "scripting-example",
+            "--bin",
+            "scripting-example",
+            "--"
+        ]
+    },
+    "build-guest": {
+        "cmd": [
+            "./build_guest.sh"
+        ]
+    }
+}
