@@ -1,10 +1,9 @@
 use tracing_subscriber::{prelude::*, registry, EnvFilter};
 use tracing_tree::HierarchicalLayer;
-use wasm_runtime_layer::{
-    Engine, Extern, Func, FuncType, Imports, Instance, Module, Store, ValueType,
-};
+use wasm_component_layer::{Component, Instance, Linker, TypedFunc};
+use wasm_runtime_layer::{Engine, Extern, Func, FuncType, Imports, Store, ValueType};
 
-const GUEST_BYTES: &[u8] = include_bytes!("../target/wasm32-unknown-unknown/debug/guest.wasm");
+const GUEST_BYTES: &[u8] = include_bytes!("../guest.wasm");
 
 fn main() {
     registry()
@@ -18,36 +17,48 @@ fn main() {
 
     // 1. Instantiate a runtime
     let engine = Engine::new(wasmtime::Engine::default());
-    let mut store = Store::new(&engine, ());
+    let mut store = wasm_component_layer::Store::new(&engine, ());
 
-    let module = Module::new(&engine, std::io::Cursor::new(GUEST_BYTES)).unwrap();
-    let mut imports = Imports::new();
-    imports.define(
-        "$root",
-        "print",
-        Extern::Func(Func::new(
-            &mut store,
-            FuncType::new([ValueType::I32, ValueType::I32], []),
-            |_store, args, _ret| {
-                tracing::info!(?args, "print");
-                // Ok(vec![Value::I32(43)])
+    // let module = Module::new(&engine, std::io::Cursor::new(GUEST_BYTES)).unwrap();
+    // let mut imports = Imports::new();
+    // imports.define(
+    //     "$root",
+    //     "print",
+    //     Extern::Func(TypedFunc::new(&mut store, || {}).func()),
+    // );
+
+    let component = Component::new(&engine, GUEST_BYTES).unwrap();
+    // Create a linker that will be used to resolve the component's imports, if any.
+    let mut linker = Linker::default();
+
+    linker
+        .root_mut()
+        .define_func(
+            "print",
+            TypedFunc::new(&mut store, |_, s: String| {
+                tracing::info!("guest: {s}");
                 Ok(())
-            },
-        )),
-    );
-
-    tracing::info!("instantiating");
-    let instance = Instance::new(&mut store, &module, &imports).unwrap();
-
-    let run = instance
-        .get_export(&store, "run")
-        .unwrap()
-        .into_func()
+            })
+            .func(),
+        )
         .unwrap();
 
-    tracing::info!("call");
+    // Create an instance of the component using the linker.
+    let instance = linker.instantiate(&mut store, &component).unwrap();
+
+    tracing::info!("instantiating");
+
+    let interface = instance.exports().root();
+
     let mut result = [];
-    run.call(&mut store, &[], &mut result).unwrap();
+    interface
+        .func("run")
+        .unwrap()
+        .call(&mut store, &[], &mut result)
+        .unwrap();
+
+    // tracing::info!("interface: {interface:#?}");
+    // run.call(&mut store, &[], &mut result).unwrap();
 
     tracing::info!(?result, "result");
     // assert_eq!(result[0], Value::I32(43));
