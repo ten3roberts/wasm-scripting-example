@@ -6,8 +6,7 @@
             "--package",
             "scripting-example",
             "--bin",
-            "scripting-example",
-            "--"
+            "scripting-example"
         ]
     },
     "build-guest": {

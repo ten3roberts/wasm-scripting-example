@@ -14,6 +14,6 @@ impl Guest for Host {
             items.push(i);
         }
 
-        println!("Hello from host! {items:?}");
+        print("Hello from host! {items:?}");
     }
 }
