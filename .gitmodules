@@ -1,0 +1,3 @@
+[submodule "wasm_runtime_layer"]
+	path = wasm_runtime_layer
+	url = https://github.com/ten3roberts/wasm_runtime_layer

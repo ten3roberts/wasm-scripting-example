@@ -1311,8 +1311,6 @@ dependencies = [
 [[package]]
 name = "wasm_runtime_layer"
 version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23b90e94255caa264fb958446173ed8ab4f8d8d24c265baf139975a31d4a80f5"
 dependencies = [
  "anyhow",
  "fxhash",

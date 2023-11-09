@@ -1,9 +1,9 @@
 use tracing_subscriber::{prelude::*, registry, EnvFilter};
 use tracing_tree::HierarchicalLayer;
-use wasm_component_layer::{Component, Instance, Linker, TypedFunc};
-use wasm_runtime_layer::{Engine, Extern, Func, FuncType, Imports, Store, ValueType};
+use wasm_component_layer::{Component, Linker, TypedFunc};
+use wasm_runtime_layer::Engine;
 
-const GUEST_BYTES: &[u8] = include_bytes!("../guest.wasm");
+const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
 
 fn main() {
     registry()

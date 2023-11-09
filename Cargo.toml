@@ -16,5 +16,9 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-tree = "0.2"
 
+[patch.crates-io]
+wasm_runtime_layer = { path = "./wasm_runtime_layer" }
+
 [workspace]
 members = [ "guest" ]
+exclude = ["./wasm_runtime_layer"]
