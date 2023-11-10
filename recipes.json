@@ -1,8 +1,18 @@
 {
-    "run-scripting": {
+    "run scripting": {
         "cmd": [
             "cargo",
             "run",
+            "--package",
+            "scripting-example",
+            "--bin",
+            "scripting-example"
+        ]
+    },
+    "build scripting": {
+        "cmd": [
+            "cargo",
+            "build",
             "--package",
             "scripting-example",
             "--bin",
