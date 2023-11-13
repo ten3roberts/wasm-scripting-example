@@ -19,9 +19,22 @@
             "scripting-example"
         ]
     },
-    "build-guest": {
+    "build guest": {
         "cmd": [
             "./build_guest.sh"
         ]
+    },
+    "build app": {
+        "cmd": [
+            "./build_app.sh"
+        ]
+    },
+    "serve app": {
+        "cmd": [
+            "python3",
+            "-m",
+            "http.server"
+        ],
+        "cwd": "./public"
     }
 }

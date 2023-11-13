@@ -1,3 +1,4 @@
+use wasm_bindgen::prelude::*;
 use wasm_component_layer::{Component, Linker, TypedFunc};
 use wasm_runtime_layer::Engine;
 
@@ -20,10 +21,13 @@ fn main() {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn main() {
+#[wasm_bindgen]
+pub fn main() {
     use tracing_subscriber::{fmt::format::Pretty, prelude::*, registry, EnvFilter};
 
     use tracing_web::{performance_layer, MakeConsoleWriter};
+
+    console_error_panic_hook::set_once();
 
     let fmt_layer = tracing_subscriber::fmt::layer()
         .with_ansi(false) // Only partially supported across browsers
