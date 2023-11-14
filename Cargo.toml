@@ -9,15 +9,15 @@ crate-type = ["cdylib", "rlib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wasm_component_layer = "0.1"
+wasm_component_layer = { path = "./wasm_component_layer" }
 
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+wasm-bindgen = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm_runtime_layer = { path = "./wasm_runtime_layer", features = ["backend_web"] }
 tracing-web = "0.1"
-wasm-bindgen = "0.2"
 console_error_panic_hook = "0.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -28,7 +28,20 @@ tracing-tree = "0.2"
 
 [patch.crates-io]
 wasm_runtime_layer = { path = "./wasm_runtime_layer" }
+wasm_component_layer = { path = "./wasm_component_layer" }
 
 [workspace]
 members = [ "guest" ]
-exclude = ["./wasm_runtime_layer"]
+exclude = ["./wasm_runtime_layer", "./wasm_component_layer/"]
+
+[package.metadata.wasm-pack.profile.dev]
+# Should `wasm-opt` be used to further optimize the wasm binary generated after
+# the Rust compiler has finished? Using `wasm-opt` can often further decrease
+# binary size or do clever tricks that haven't made their way into LLVM yet.
+#
+# Configuration is set to `false` by default for the dev profile, but it can
+# be set to an array of strings which are explicit arguments to pass to
+# `wasm-opt`. For example `['-Os']` would optimize for size while `['-O4']`
+# would execute very expensive optimizations passes
+wasm-opt = false
+

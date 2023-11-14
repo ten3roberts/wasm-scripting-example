@@ -4,26 +4,13 @@ use wasm_runtime_layer::Engine;
 
 const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
 
-#[cfg(not(target_arch = "wasm32"))]
-fn main() {
-    use tracing_subscriber::{prelude::*, registry, EnvFilter};
-    use tracing_tree::HierarchicalLayer;
-    registry()
-        .with(EnvFilter::from_default_env())
-        .with(
-            HierarchicalLayer::new(4)
-                .with_indent_lines(true)
-                .with_span_retrace(true),
-        )
-        .init();
-
-    run()
-}
-
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn main() {
-    use tracing_subscriber::{fmt::format::Pretty, prelude::*, registry, EnvFilter};
+    use tracing_subscriber::{
+        fmt::format::{FmtSpan, Pretty},
+        prelude::*,
+    };
 
     use tracing_web::{performance_layer, MakeConsoleWriter};
 
@@ -32,25 +19,28 @@ pub fn main() {
     let fmt_layer = tracing_subscriber::fmt::layer()
         .with_ansi(false) // Only partially supported across browsers
         .without_time()
+        .with_span_events(FmtSpan::ACTIVE)
         .with_writer(MakeConsoleWriter); // write events to the console
+
     let perf_layer = performance_layer().with_details_from_fields(Pretty::default());
 
     tracing_subscriber::registry()
         .with(fmt_layer)
         .with(perf_layer)
-        .init(); // Install these as subscribers to tracing events
+        .init();
 
     run()
 }
 
-fn run() {
+pub fn run() {
     // 1. Instantiate a runtime
     #[cfg(not(target_arch = "wasm32"))]
-    let engine = Engine::new(wasmtime::Engine::default());
+    let engine = Engine::new(wasmi::Engine::default());
 
     #[cfg(target_arch = "wasm32")]
     let engine = Engine::new(wasm_runtime_layer::web::Engine::default());
 
+    tracing::info!("create store");
     let mut store = wasm_component_layer::Store::new(&engine, ());
 
     // let module = Module::new(&engine, std::io::Cursor::new(GUEST_BYTES)).unwrap();
@@ -61,10 +51,12 @@ fn run() {
     //     Extern::Func(TypedFunc::new(&mut store, || {}).func()),
     // );
 
+    tracing::info!("create component");
     let component = Component::new(&engine, GUEST_BYTES).unwrap();
     // Create a linker that will be used to resolve the component's imports, if any.
     let mut linker = Linker::default();
 
+    tracing::info!("Defining imports");
     linker
         .root_mut()
         .define_func(

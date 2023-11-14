@@ -22,12 +22,22 @@
     "build guest": {
         "cmd": [
             "./build_guest.sh"
-        ]
+        ],
+        "components": {
+            "qf": {
+                "compiler": "cargo"
+            }
+        }
     },
     "build app": {
         "cmd": [
             "./build_app.sh"
-        ]
+        ],
+        "components": {
+            "qf": {
+                "compiler": "cargo"
+            }
+        }
     },
     "serve app": {
         "cmd": [
@@ -36,5 +46,14 @@
             "http.server"
         ],
         "cwd": "./public"
+    },
+    "debug scripting-example": {
+        "cmd": "cargo build -p scripting-example",
+        "components": {
+            "dap": {
+                "program": "./target/debug/scripting-example",
+                "adapter": "rust"
+            }
+        }
     }
 }
