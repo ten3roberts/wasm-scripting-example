@@ -17,10 +17,11 @@ pub fn main() {
     console_error_panic_hook::set_once();
 
     let fmt_layer = tracing_subscriber::fmt::layer()
-        .with_ansi(false) // Only partially supported across browsers
+        .with_ansi(false)
         .without_time()
         .with_span_events(FmtSpan::ACTIVE)
-        .with_writer(MakeConsoleWriter); // write events to the console
+        .with_writer(MakeConsoleWriter)
+        .compact();
 
     let perf_layer = performance_layer().with_details_from_fields(Pretty::default());
 
@@ -29,10 +30,12 @@ pub fn main() {
         .with(perf_layer)
         .init();
 
-    run()
+    if let Err(err) = run() {
+        tracing::error!("{err:?}");
+    }
 }
 
-pub fn run() {
+pub fn run() -> anyhow::Result<()> {
     // 1. Instantiate a runtime
     #[cfg(not(target_arch = "wasm32"))]
     let engine = Engine::new(wasmi::Engine::default());
@@ -52,7 +55,7 @@ pub fn run() {
     // );
 
     tracing::info!("create component");
-    let component = Component::new(&engine, GUEST_BYTES).unwrap();
+    let component = Component::new(&engine, GUEST_BYTES)?;
     // Create a linker that will be used to resolve the component's imports, if any.
     let mut linker = Linker::default();
 
@@ -70,7 +73,7 @@ pub fn run() {
         .unwrap();
 
     // Create an instance of the component using the linker.
-    let instance = linker.instantiate(&mut store, &component).unwrap();
+    let instance = linker.instantiate(&mut store, &component)?;
 
     tracing::info!("instantiating");
 
@@ -88,4 +91,5 @@ pub fn run() {
 
     tracing::info!(?result, "result");
     // assert_eq!(result[0], Value::I32(43));
+    Ok(())
 }

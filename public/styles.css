@@ -1,10 +1,13 @@
 :root {
   --black: #0e1631;
+  --black: #070c1a;
   /* --emerald: #50c878; */
-  --emerald: #43d685;
-  --mint: #23bb83;
-  --cyan: #40938c;
-  --rose: #cd6d92;
+  /* --emerald: #40d684; */
+  --emerald: #3bc479;
+  --mint: #38ba8a;
+  --cyan: #2c948b;
+  --rose: #cc5281;
+  --yellow: #d9a050;
 }
 body {
   background-color: var(--black);
