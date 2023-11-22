@@ -9,4 +9,4 @@ edition = "2021"
 wit-bindgen = "0.13"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]

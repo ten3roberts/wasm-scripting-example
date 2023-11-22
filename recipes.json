@@ -37,7 +37,10 @@
             "qf": {
                 "compiler": "cargo"
             }
-        }
+        },
+        "depends_on": [
+            "build guest"
+        ]
     },
     "serve app": {
         "cmd": [

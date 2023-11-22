@@ -17,11 +17,11 @@ pub fn main() {
     console_error_panic_hook::set_once();
 
     let fmt_layer = tracing_subscriber::fmt::layer()
-        .with_ansi(false)
+        .with_ansi(true)
         .without_time()
         .with_span_events(FmtSpan::ACTIVE)
         .with_writer(MakeConsoleWriter)
-        .compact();
+        .pretty();
 
     let perf_layer = performance_layer().with_details_from_fields(Pretty::default());
 
@@ -60,12 +60,13 @@ pub fn run() -> anyhow::Result<()> {
     let mut linker = Linker::default();
 
     tracing::info!("Defining imports");
+
     linker
         .root_mut()
         .define_func(
             "print",
-            TypedFunc::new(&mut store, |_, s: String| {
-                tracing::info!("guest: {s}");
+            TypedFunc::new(&mut store, |_, _: i32| {
+                tracing::info!("guest");
                 Ok(())
             })
             .func(),
@@ -75,9 +76,11 @@ pub fn run() -> anyhow::Result<()> {
     // Create an instance of the component using the linker.
     let instance = linker.instantiate(&mut store, &component)?;
 
-    tracing::info!("instantiating");
+    tracing::info!("Finished instantiating component");
 
     let interface = instance.exports().root();
+
+    tracing::info!("Calling run");
 
     let mut result = [];
     interface
