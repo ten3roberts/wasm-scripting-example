@@ -8,9 +8,11 @@ wit_bindgen::generate!( {
 struct Host;
 
 impl Guest for Host {
-    fn run(arg: String) -> i32 {
-        if arg == "Hello" {
+    fn run(args: Vec<String>) -> i32 {
+        if args == ["guest", "Hello"] {
             print("Hello from the other side");
+        } else {
+            panic!("");
         }
 
         let mut items = Vec::new();
@@ -22,5 +24,9 @@ impl Guest for Host {
 
         print(&format!("Hello from guest {items:?}"));
         42
+    }
+
+    fn get_name() -> String {
+        "guest-module".into()
     }
 }

@@ -1,8 +1,7 @@
-use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
 use color_eyre::eyre::{self, Context};
-use wasm_component_layer::{Component, Linker, TypedFunc, Value};
+use wasm_component_layer::{Component, Linker, List, ListType, TypedFunc, Value, ValueType};
 use wasm_runtime_layer::Engine;
 
 const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
@@ -99,12 +98,17 @@ pub fn run() -> eyre::Result<()> {
 
     let mut result = [Value::Bool(false)];
     let _span = tracing::info_span!("run").entered();
-    interface
-        .func("run")
-        .unwrap()
+    let func_run = interface.func("run").unwrap();
+
+    let func_get_name = interface.func("get-name").unwrap();
+
+    func_run
         .call(
             &mut store,
-            &[Value::String(Arc::from("Hello"))],
+            &[Value::List(List::new(
+                ListType::new(ValueType::String),
+                [Value::String("guest".into()), Value::String("Hello".into())],
+            )?)],
             &mut result,
         )
         .wrap_err("Failed to call `run`")?;
@@ -112,6 +116,11 @@ pub fn run() -> eyre::Result<()> {
     tracing::info!(?result, "result");
 
     assert_eq!(result[0], Value::S32(42));
+
+    let result = func_get_name.typed::<(), String>()?.call(&mut store, ())?;
+    tracing::info!("received name: {result:?}");
+
+    assert_eq!(result, "guest-module");
 
     Ok(())
 }

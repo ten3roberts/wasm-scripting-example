@@ -4,5 +4,7 @@ world main {
     import get-value: func(key: u32) -> u64;
     import print: func(msg: string);
 
-    export run: func(arg: string) -> s32;
+    export run: func(args: list<string>) -> s32;
+
+    export get-name: func() -> string;
 }
