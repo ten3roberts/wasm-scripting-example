@@ -1,7 +1,8 @@
 package example:host
 
 world main {
-  import print: func(v: s32)
+    import get-value: func(key: u32) -> u64;
+    import print: func(msg: string);
 
-  export run: func()
+    export run: func(arg: string) -> s32;
 }

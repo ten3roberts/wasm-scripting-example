@@ -14,7 +14,9 @@ wasm_component_layer = { path = "./wasm_component_layer" }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 wasm-bindgen = "0.2"
+color-eyre = { version = "0.6.2", git = "https://github.com/eyre-rs/color-eyre", branch = "feat-configurable-backtrace" }
 anyhow = "1.0"
+tracing-error = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm_runtime_layer = { path = "./wasm_runtime_layer", features = ["backend_web"] }
@@ -30,6 +32,7 @@ tracing-tree = "0.2"
 [patch.crates-io]
 wasm_runtime_layer = { path = "./wasm_runtime_layer" }
 wasm_component_layer = { path = "./wasm_component_layer" }
+eyre = { git = "https://github.com/eyre-rs/eyre", branch = "feat-anyhow-compat" }
 
 [workspace]
 members = [ "guest" ]
@@ -45,4 +48,3 @@ exclude = ["./wasm_runtime_layer", "./wasm_component_layer/"]
 # `wasm-opt`. For example `['-Os']` would optimize for size while `['-O4']`
 # would execute very expensive optimizations passes
 wasm-opt = false
-

@@ -1,5 +1,8 @@
+use std::sync::Arc;
 use wasm_bindgen::prelude::*;
-use wasm_component_layer::{Component, Linker, TypedFunc};
+
+use color_eyre::eyre::{self, Context};
+use wasm_component_layer::{Component, Linker, TypedFunc, Value};
 use wasm_runtime_layer::Engine;
 
 const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
@@ -7,6 +10,7 @@ const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn main() {
+    use color_eyre::config::Verbosity;
     use tracing_subscriber::{
         fmt::format::{FmtSpan, Pretty},
         prelude::*,
@@ -14,28 +18,34 @@ pub fn main() {
 
     use tracing_web::{performance_layer, MakeConsoleWriter};
 
-    console_error_panic_hook::set_once();
-
     let fmt_layer = tracing_subscriber::fmt::layer()
         .with_ansi(true)
         .without_time()
         .with_span_events(FmtSpan::ACTIVE)
         .with_writer(MakeConsoleWriter)
-        .pretty();
+        .compact();
 
     let perf_layer = performance_layer().with_details_from_fields(Pretty::default());
 
     tracing_subscriber::registry()
         .with(fmt_layer)
         .with(perf_layer)
+        .with(tracing_error::ErrorLayer::default())
         .init();
+
+    console_error_panic_hook::set_once();
+    let (_, eyre_hook) = color_eyre::config::HookBuilder::default()
+        .capture_backtrace(Some(Verbosity::Full))
+        .into_hooks();
+
+    eyre_hook.install().unwrap();
 
     if let Err(err) = run() {
         tracing::error!("{err:?}");
     }
 }
 
-pub fn run() -> anyhow::Result<()> {
+pub fn run() -> eyre::Result<()> {
     // 1. Instantiate a runtime
     #[cfg(not(target_arch = "wasm32"))]
     let engine = Engine::new(wasmi::Engine::default());
@@ -61,17 +71,22 @@ pub fn run() -> anyhow::Result<()> {
 
     tracing::info!("Defining imports");
 
-    linker
-        .root_mut()
-        .define_func(
-            "print",
-            TypedFunc::new(&mut store, |_, _: i32| {
-                tracing::info!("guest");
-                Ok(())
-            })
-            .func(),
-        )
-        .unwrap();
+    let root = linker.root_mut();
+    root.define_func(
+        "print",
+        TypedFunc::new(&mut store, |_, msg: String| {
+            tracing::info!(target: "guest", "{msg}");
+            Ok(())
+        })
+        .func(),
+    )
+    .unwrap();
+
+    root.define_func(
+        "get-value",
+        TypedFunc::new(&mut store, |_, key: u32| Ok((key as u64) * (key as u64))).func(),
+    )
+    .unwrap();
 
     // Create an instance of the component using the linker.
     let instance = linker.instantiate(&mut store, &component)?;
@@ -82,17 +97,21 @@ pub fn run() -> anyhow::Result<()> {
 
     tracing::info!("Calling run");
 
-    let mut result = [];
+    let mut result = [Value::Bool(false)];
+    let _span = tracing::info_span!("run").entered();
     interface
         .func("run")
         .unwrap()
-        .call(&mut store, &[], &mut result)
-        .unwrap();
-
-    // tracing::info!("interface: {interface:#?}");
-    // run.call(&mut store, &[], &mut result).unwrap();
+        .call(
+            &mut store,
+            &[Value::String(Arc::from("Hello"))],
+            &mut result,
+        )
+        .wrap_err("Failed to call `run`")?;
 
     tracing::info!(?result, "result");
-    // assert_eq!(result[0], Value::I32(43));
+
+    assert_eq!(result[0], Value::S32(42));
+
     Ok(())
 }

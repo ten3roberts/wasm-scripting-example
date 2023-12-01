@@ -2,3 +2,7 @@
 bin
 .neoconf.json
 *.wasm
+guest-core.wast
+guest.wast
+jco-out
+scripting_example.wast
