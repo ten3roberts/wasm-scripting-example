@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 
-use color_eyre::eyre::{self, Context};
+use color_eyre::eyre::{self, eyre, Context};
 use wasm_component_layer::{Component, Linker, List, ListType, TypedFunc, Value, ValueType};
 use wasm_runtime_layer::Engine;
 
@@ -98,26 +98,25 @@ pub fn run() -> eyre::Result<()> {
 
     let mut result = [Value::Bool(false)];
     let _span = tracing::info_span!("run").entered();
-    let func_run = interface.func("run").unwrap();
+    let func_run = interface
+        .func("run")
+        .ok_or_else(|| eyre!("no such function"))?
+        .typed::<Vec<String>, Result<i32, String>>()?;
 
-    let func_get_name = interface.func("get-name").unwrap();
+    let func_get_name = interface
+        .func("get-name")
+        .ok_or_else(|| eyre!("no such function"))?
+        .typed::<(), String>()?;
 
-    func_run
-        .call(
-            &mut store,
-            &[Value::List(List::new(
-                ListType::new(ValueType::String),
-                [Value::String("guest".into()), Value::String("Hello".into())],
-            )?)],
-            &mut result,
-        )
+    let result = func_run
+        .call(&mut store, vec!["guest".into(), "Hello".into()])
         .wrap_err("Failed to call `run`")?;
 
     tracing::info!(?result, "result");
 
-    assert_eq!(result[0], Value::S32(42));
+    assert_eq!(result, Ok(42));
 
-    let result = func_get_name.typed::<(), String>()?.call(&mut store, ())?;
+    let result = func_get_name.call(&mut store, ())?;
     tracing::info!("received name: {result:?}");
 
     assert_eq!(result, "guest-module");
