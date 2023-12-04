@@ -1,6 +1,5 @@
+use anyhow::Context;
 use wasm_bindgen::prelude::*;
-
-use color_eyre::eyre::{self, eyre, Context};
 use wasm_component_layer::{Component, Linker, List, ListType, TypedFunc, Value, ValueType};
 use wasm_runtime_layer::Engine;
 
@@ -9,7 +8,6 @@ const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn main() {
-    use color_eyre::config::Verbosity;
     use tracing_subscriber::{
         fmt::format::{FmtSpan, Pretty},
         prelude::*,
@@ -33,18 +31,13 @@ pub fn main() {
         .init();
 
     console_error_panic_hook::set_once();
-    let (_, eyre_hook) = color_eyre::config::HookBuilder::default()
-        .capture_backtrace(Some(Verbosity::Full))
-        .into_hooks();
-
-    eyre_hook.install().unwrap();
 
     if let Err(err) = run() {
         tracing::error!("{err:?}");
     }
 }
 
-pub fn run() -> eyre::Result<()> {
+pub fn run() -> anyhow::Result<()> {
     // 1. Instantiate a runtime
     #[cfg(not(target_arch = "wasm32"))]
     let engine = Engine::new(wasmi::Engine::default());
@@ -100,17 +93,17 @@ pub fn run() -> eyre::Result<()> {
     let _span = tracing::info_span!("run").entered();
     let func_run = interface
         .func("run")
-        .ok_or_else(|| eyre!("no such function"))?
+        .ok_or_else(|| anyhow::anyhow!("no such function"))?
         .typed::<Vec<String>, Result<i32, String>>()?;
 
     let func_get_name = interface
         .func("get-name")
-        .ok_or_else(|| eyre!("no such function"))?
+        .ok_or_else(|| anyhow::anyhow!("no such function"))?
         .typed::<(), String>()?;
 
     let result = func_run
         .call(&mut store, vec!["guest".into(), "Hello".into()])
-        .wrap_err("Failed to call `run`")?;
+        .context("Failed to call `run`")?;
 
     tracing::info!(?result, "result");
 
