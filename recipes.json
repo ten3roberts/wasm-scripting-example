@@ -58,5 +58,22 @@
                 "adapter": "rust"
             }
         }
+    },
+    "build test components": {
+        "cmd": "./build_test_components.sh",
+        "cwd": "./scripting-tests/"
+    },
+    "test": {
+        "cmd": "cargo test --workspace",
+        "depends_on": [
+            "build test components"
+        ]
+    },
+    "test wasm": {
+        "cmd": "wasm-pack test --node",
+        "depends_on": [
+            "build test components"
+        ],
+        "cwd": "./scripting-tests/"
     }
 }
