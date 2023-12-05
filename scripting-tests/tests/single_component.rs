@@ -1,6 +1,5 @@
 use scripting_tests::setup;
 use wasm_bindgen_test::wasm_bindgen_test;
-use wasm_component_layer::*;
 
 // The bytes of the component.
 const WASM: &[u8] = include_bytes!("../single_component/component.wasm");

@@ -1,12 +1,11 @@
 use anyhow::Context;
-use wasm_bindgen::prelude::*;
-use wasm_component_layer::{Component, Linker, List, ListType, TypedFunc, Value, ValueType};
+use wasm_component_layer::{Component, Linker, TypedFunc};
 use wasm_runtime_layer::Engine;
 
 const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[wasm_bindgen::prelude::wasm_bindgen]
 pub fn main() {
     use tracing_subscriber::{
         fmt::format::{FmtSpan, Pretty},
@@ -89,7 +88,6 @@ pub fn run() -> anyhow::Result<()> {
 
     tracing::info!("Calling run");
 
-    let mut result = [Value::Bool(false)];
     let _span = tracing::info_span!("run").entered();
     let func_run = interface
         .func("run")

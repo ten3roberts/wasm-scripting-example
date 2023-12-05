@@ -21,6 +21,7 @@ impl Guest for Host {
         }
 
         let value = get_value(5);
+        assert_eq!(value, 5 * 5);
 
         print(&format!("Hello from guest {items:?}"));
         Ok(42)

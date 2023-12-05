@@ -66,7 +66,7 @@ fn setup_tracing() {
 
     let (_panic_hook, error_hook) = color_eyre::config::HookBuilder::default().into_hooks();
     // panic_hook.install();
-    error_hook.install();
+    error_hook.install().unwrap();
 }
 
 #[cfg(not(target_arch = "wasm32"))]
