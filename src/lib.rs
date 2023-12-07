@@ -74,8 +74,44 @@ pub fn run() -> anyhow::Result<()> {
     .unwrap();
 
     root.define_func(
+        "get-host-name",
+        TypedFunc::new(&mut store, |_, key: ()| -> anyhow::Result<String> {
+            Ok("Host".into())
+        })
+        .func(),
+    )
+    .unwrap();
+
+    root.define_func(
         "get-value",
-        TypedFunc::new(&mut store, |_, key: u32| Ok((key as u64) * (key as u64))).func(),
+        TypedFunc::new(&mut store, |_, key: u32| -> anyhow::Result<(u64, f32)> {
+            Ok(((key as u64) * (key as u64), (key as f32).sqrt()))
+        })
+        .func(),
+    )
+    .unwrap();
+
+    root.define_func(
+        "get-value-tuple",
+        TypedFunc::new(&mut store, |_, key: u32| -> anyhow::Result<((u64, f32),)> {
+            Ok((((key as u64) * (key as u64), (key as f32).sqrt()),))
+        })
+        .func(),
+    )
+    .unwrap();
+
+    root.define_func(
+        "get-value-tuple2",
+        TypedFunc::new(
+            &mut store,
+            |_, key: u32| -> anyhow::Result<((u64, f32), (String, String))> {
+                Ok((
+                    ((key as u64) * (key as u64), (key as f32).sqrt()),
+                    ("Hello".into(), "World".into()),
+                ))
+            },
+        )
+        .func(),
     )
     .unwrap();
 
@@ -95,7 +131,7 @@ pub fn run() -> anyhow::Result<()> {
         .typed::<Vec<String>, Result<i32, String>>()?;
 
     let func_get_name = interface
-        .func("get-name")
+        .func("get-guest-name")
         .ok_or_else(|| anyhow::anyhow!("no such function"))?
         .typed::<(), String>()?;
 

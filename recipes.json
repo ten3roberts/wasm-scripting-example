@@ -7,6 +7,9 @@
             "scripting-example",
             "--bin",
             "scripting-example"
+        ],
+        "depends_on": [
+            "build guest"
         ]
     },
     "build scripting": {
@@ -17,6 +20,9 @@
             "scripting-example",
             "--bin",
             "scripting-example"
+        ],
+        "depends_on": [
+            "build guest"
         ]
     },
     "build guest": {

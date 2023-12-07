@@ -1,5 +1,7 @@
+use std::io::Cursor;
+
 use wasm_component_layer::{Component, Instance, Linker, Store};
-use wasm_runtime_layer::Engine;
+use wasm_runtime_layer::{Engine, Imports};
 
 pub use wasm_component_layer;
 pub use wasm_runtime_layer;
@@ -101,6 +103,28 @@ pub fn setup(bytes: &[u8]) -> (Store<(), EngineImpl>, Instance) {
     let linker = Linker::default();
     // Create an instance of the component using the linker.
     let instance = linker.instantiate(&mut store, &component).unwrap();
+
+    (store, instance)
+}
+
+pub fn setup_core(
+    bytes: &[u8],
+    imports: &Imports,
+) -> (
+    wasm_runtime_layer::Store<(), EngineImpl>,
+    wasm_runtime_layer::Instance,
+) {
+    setup_tracing();
+
+    // Create a new engine for instantiating a component.
+    let engine = wasm_runtime_layer::Engine::new(EngineImpl::default());
+
+    // Create a store for managing WASM data and any custom user-defined state.
+    let mut store = wasm_runtime_layer::Store::new(&engine, ());
+
+    // Parse the component bytes and load its imports and exports.
+    let module = wasm_runtime_layer::Module::new(&engine, Cursor::new(bytes)).unwrap();
+    let instance = wasm_runtime_layer::Instance::new(&mut store, &module, imports).unwrap();
 
     (store, instance)
 }

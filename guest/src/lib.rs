@@ -20,14 +20,18 @@ impl Guest for Host {
             items.push(i);
         }
 
-        let value = get_value(5);
-        assert_eq!(value, 5 * 5);
+        let (sq, sqrt) = get_value(16);
+        assert_eq!(sq, 256);
+        assert_eq!(sqrt as u32, 4);
 
-        print(&format!("Hello from guest {items:?}"));
+        let val = get_value_tuple(16);
+        let val2 = get_value_tuple2(16);
+
+        print(&format!("Hello from guest {items:?} {val:?} {val2:?}"));
         Ok(42)
     }
 
-    fn get_name() -> String {
+    fn get_guest_name() -> String {
         "guest-module".into()
     }
 }
