@@ -18,13 +18,13 @@ pub fn core_module() {
         .collect::<BTreeMap<_, _>>();
 
     // Get the function for selecting a list element.
-    let Extern::Func(func) = exports.get("add").unwrap() else {
+    let Extern::Func(func) = exports.get("add-sub").unwrap() else {
         unreachable!()
     };
 
-    let mut result = [Value::I32(0)];
+    let mut result = [Value::I32(0), Value::I32(0)];
     func.call(&mut store, &[Value::I32(5), Value::I32(4)], &mut result)
         .unwrap();
 
-    assert_eq!(result, [Value::I32(9)],);
+    assert_eq!(result, [Value::I32(9), Value::I32(1)],);
 }
