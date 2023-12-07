@@ -111,20 +111,16 @@ pub fn setup_core(
     bytes: &[u8],
     imports: &Imports,
 ) -> (
+    wasm_runtime_layer::Engine<EngineImpl>,
     wasm_runtime_layer::Store<(), EngineImpl>,
-    wasm_runtime_layer::Instance,
 ) {
     setup_tracing();
 
     // Create a new engine for instantiating a component.
     let engine = wasm_runtime_layer::Engine::new(EngineImpl::default());
 
+    let store = wasm_runtime_layer::Store::new(&engine, ());
+
     // Create a store for managing WASM data and any custom user-defined state.
-    let mut store = wasm_runtime_layer::Store::new(&engine, ());
-
-    // Parse the component bytes and load its imports and exports.
-    let module = wasm_runtime_layer::Module::new(&engine, Cursor::new(bytes)).unwrap();
-    let instance = wasm_runtime_layer::Instance::new(&mut store, &module, imports).unwrap();
-
-    (store, instance)
+    (engine, store)
 }
