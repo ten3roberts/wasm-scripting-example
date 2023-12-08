@@ -10,10 +10,9 @@ const WASM: &[u8] = include_bytes!("../bin/core_guest.wasm");
 #[test]
 #[wasm_bindgen_test]
 pub fn core_module() {
-    let (engine, mut store) = setup_core(WASM, &Imports::default());
+    let (engine, mut store) = setup_core();
 
     let func = Func::new(
-        "get-values",
         &mut store,
         FuncType::new([], [ValueType::I32, ValueType::I32]),
         |_, _, res| {

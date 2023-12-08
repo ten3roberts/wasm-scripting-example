@@ -1,7 +1,5 @@
-use std::io::Cursor;
-
 use wasm_component_layer::{Component, Instance, Linker, Store};
-use wasm_runtime_layer::{Engine, Imports};
+use wasm_runtime_layer::Engine;
 
 pub use wasm_component_layer;
 pub use wasm_runtime_layer;
@@ -107,10 +105,7 @@ pub fn setup(bytes: &[u8]) -> (Store<(), EngineImpl>, Instance) {
     (store, instance)
 }
 
-pub fn setup_core(
-    bytes: &[u8],
-    imports: &Imports,
-) -> (
+pub fn setup_core() -> (
     wasm_runtime_layer::Engine<EngineImpl>,
     wasm_runtime_layer::Store<(), EngineImpl>,
 ) {

@@ -44,7 +44,6 @@ pub fn run() -> anyhow::Result<()> {
     #[cfg(target_arch = "wasm32")]
     let engine = Engine::new(wasm_runtime_layer::web::Engine::default());
 
-    tracing::info!("create store");
     let mut store = wasm_component_layer::Store::new(&engine, ());
 
     // let module = Module::new(&engine, std::io::Cursor::new(GUEST_BYTES)).unwrap();
@@ -55,7 +54,6 @@ pub fn run() -> anyhow::Result<()> {
     //     Extern::Func(TypedFunc::new(&mut store, || {}).func()),
     // );
 
-    tracing::info!("create component");
     let component = Component::new(&engine, GUEST_BYTES)?;
     // Create a linker that will be used to resolve the component's imports, if any.
     let mut linker = Linker::default();
@@ -75,7 +73,7 @@ pub fn run() -> anyhow::Result<()> {
 
     root.define_func(
         "get-host-name",
-        TypedFunc::new(&mut store, |_, key: ()| -> anyhow::Result<String> {
+        TypedFunc::new(&mut store, |_, _: ()| -> anyhow::Result<String> {
             Ok("Host".into())
         })
         .func(),

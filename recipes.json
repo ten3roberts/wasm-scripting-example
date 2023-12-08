@@ -70,16 +70,32 @@
         "cwd": "./scripting-tests/"
     },
     "test": {
-        "cmd": "cargo test --workspace",
+        "cmd": "cargo test --workspace --all-features",
         "depends_on": [
             "build test components"
         ]
+    },
+    "test runtime wasm": {
+        "cmd": "wasm-pack test --node --features backend_wasmi,backend_web",
+        "cwd": "./wasm_runtime_layer"
     },
     "test wasm": {
         "cmd": "wasm-pack test --node",
         "depends_on": [
             "build test components"
         ],
+        "components": {
+            "qf": {
+                "compiler": "cargo"
+            }
+        },
         "cwd": "./scripting-tests/"
+    },
+    "test all": {
+        "depends_on": [
+            "test",
+            "test wasm",
+            "test runtime wasm"
+        ]
     }
 }
