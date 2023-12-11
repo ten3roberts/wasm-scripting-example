@@ -19,7 +19,7 @@ pub fn main() {
         .without_time()
         .with_span_events(FmtSpan::ACTIVE)
         .with_writer(MakeConsoleWriter)
-        .compact();
+        .pretty();
 
     let perf_layer = performance_layer().with_details_from_fields(Pretty::default());
 

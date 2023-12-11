@@ -1620,6 +1620,7 @@ dependencies = [
  "semver",
  "serde",
  "slab",
+ "tracing",
  "wasm_runtime_layer",
  "wasmi",
  "wasmtime-environ",
