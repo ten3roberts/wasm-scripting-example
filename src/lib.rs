@@ -37,7 +37,6 @@ pub fn main() {
 }
 
 pub fn run() -> anyhow::Result<()> {
-    // 1. Instantiate a runtime
     #[cfg(not(target_arch = "wasm32"))]
     let engine = Engine::new(wasmi::Engine::default());
 
