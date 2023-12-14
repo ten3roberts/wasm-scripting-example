@@ -6,7 +6,7 @@ fn main() -> anyhow::Result<()> {
     registry()
         .with(EnvFilter::from_default_env())
         .with(
-            HierarchicalLayer::new(4)
+            HierarchicalLayer::new(2)
                 .with_indent_lines(true)
                 .with_span_retrace(true),
         )

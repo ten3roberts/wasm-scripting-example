@@ -1,4 +1,4 @@
-package example:host
+package example:host;
 
 world main {
     import get-host-name: func() -> string;

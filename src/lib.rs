@@ -4,6 +4,8 @@ use wasm_runtime_layer::Engine;
 
 const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
 
+wasm_component_layer::bindgen!({ path: "./guest/wit/main.wit" });
+
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn main() {

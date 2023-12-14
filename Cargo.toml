@@ -9,7 +9,7 @@ crate-type = ["cdylib", "rlib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wasm_component_layer = { path = "./wasm_component_layer" }
+wasm_component_layer = { path = "./wasm_component_layer", features = [ "tracing", "macros" ] }
 
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -24,9 +24,9 @@ tracing-web = "0.1"
 console_error_panic_hook = "0.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-wasm_runtime_layer = { path = "./wasm_runtime_layer", features = ["backend_wasmi", "backend_wasmtime"] }
+wasm_runtime_layer = { path = "./wasm_runtime_layer", features = ["backend_wasmi", "tracing"] }
 wasmi = "0.31"
-wasmtime = { version = ">=0.0.0", features = ["component-model"] }
+# wasmtime = { version = ">=0.0.0", features = ["component-model"] }
 tracing-tree = "0.3"
 
 [patch.crates-io]
@@ -35,12 +35,12 @@ wasm_component_layer = { path = "./wasm_component_layer" }
 
 [workspace]
 members = [
-    "guest",
-    "wasm_runtime_layer",
-    "wasm_component_layer",
+    "./guest",
+    "./wasm_runtime_layer",
     "./scripting-tests/single_component",
     "./scripting-tests"
 ]
+exclude = [ "./wasm_component_layer" ]
 
 [package.metadata.wasm-pack.profile.dev]
 # Should `wasm-opt` be used to further optimize the wasm binary generated after
