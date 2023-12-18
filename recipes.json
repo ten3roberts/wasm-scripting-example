@@ -56,14 +56,17 @@
         ],
         "cwd": "./public"
     },
-    "debug scripting-example": {
+    "debug scripting": {
         "cmd": "cargo build -p scripting-example",
         "components": {
             "dap": {
                 "program": "./target/debug/scripting-example",
                 "adapter": "rust"
             }
-        }
+        },
+        "depends_on": [
+            "build guest"
+        ]
     },
     "build test components": {
         "cmd": "./build_test_components.sh",

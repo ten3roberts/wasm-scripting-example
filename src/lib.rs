@@ -1,5 +1,4 @@
-use anyhow::Context;
-use wasm_component_layer::{Component, Linker, TypedFunc};
+use wasm_component_layer::{Component, Linker, TypedFunc, Value};
 use wasm_runtime_layer::Engine;
 
 const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
@@ -124,28 +123,48 @@ pub fn run() -> anyhow::Result<()> {
     tracing::info!("Calling run");
 
     let _span = tracing::info_span!("run").entered();
+
     let func_run = interface
         .func("run")
-        .ok_or_else(|| anyhow::anyhow!("no such function"))?
-        .typed::<Vec<String>, Result<i32, String>>()?;
+        .ok_or_else(|| anyhow::anyhow!("no such function"))?;
 
-    let func_get_name = interface
-        .func("get-guest-name")
-        .ok_or_else(|| anyhow::anyhow!("no such function"))?
-        .typed::<(), String>()?;
+    let v: Value = func_run
+        .call_typed(&mut store, "Hello, World!".to_string())
+        .unwrap();
+    tracing::info!("received value: {v:?}");
 
-    let result = func_run
-        .call(&mut store, vec!["guest".into(), "Hello".into()])
-        .context("Failed to call `run`")?;
+    assert_eq!(v, Value::S32(13));
 
-    tracing::info!(?result, "result");
+    let v: i32 = func_run
+        .call_typed(&mut store, Value::String("It works!".into()))
+        .unwrap();
 
-    assert_eq!(result, Ok(42));
+    tracing::info!("received value: {v:?}");
 
-    let result = func_get_name.call(&mut store, ())?;
-    tracing::info!("received name: {result:?}");
+    assert_eq!(v, 9);
 
-    assert_eq!(result, "guest-module");
+    // let func_run = interface
+    //     .func("run")
+    //     .ok_or_else(|| anyhow::anyhow!("no such function"))?
+    //     .typed::<Vec<String>, Result<i32, String>>()?;
+
+    // let func_get_name = interface
+    //     .func("get-guest-name")
+    //     .ok_or_else(|| anyhow::anyhow!("no such function"))?
+    //     .typed::<(), String>()?;
+
+    // let result = func_run
+    //     .call(&mut store, vec!["guest".into(), "Hello".into()])
+    //     .context("Failed to call `run`")?;
+
+    // tracing::info!(?result, "result");
+
+    // assert_eq!(result, Ok(42));
+
+    // let result = func_get_name.call(&mut store, ())?;
+    // tracing::info!("received name: {result:?}");
+
+    // assert_eq!(result, "guest-module");
 
     Ok(())
 }
