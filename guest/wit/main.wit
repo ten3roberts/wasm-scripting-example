@@ -1,7 +1,7 @@
 package example:host;
 
 world main {
-    export run: func(s: string) -> s32;
+    export run: func(args: list<string>) -> tuple<string, string>;
     // import get-host-name: func() -> string;
     // import get-value: func(key: u32) -> (a: u64, b: float32);
     // import get-value-tuple: func(key: u32) -> tuple<u64, float32>;

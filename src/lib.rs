@@ -1,4 +1,4 @@
-use wasm_component_layer::{Component, Linker, TypedFunc, Value};
+use wasm_component_layer::{Component, Linker, Tuple, TupleType, TypedFunc, Value, ValueType};
 use wasm_runtime_layer::Engine;
 
 const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
@@ -129,19 +129,31 @@ pub fn run() -> anyhow::Result<()> {
         .ok_or_else(|| anyhow::anyhow!("no such function"))?;
 
     let v: Value = func_run
-        .call_typed(&mut store, "Hello, World!".to_string())
+        .call_typed(&mut store, &["Hello, World!".to_string()][..])
         .unwrap();
     tracing::info!("received value: {v:?}");
 
-    assert_eq!(v, Value::S32(13));
+    assert_eq!(
+        v,
+        (Value::Tuple(
+            Tuple::new(
+                TupleType::new(None, [ValueType::String, ValueType::String]),
+                vec![
+                    Value::String("HELLO, WORLD!".into()),
+                    Value::String("!dlroW ,olleH".into()),
+                ]
+            )
+            .unwrap()
+        ))
+    );
 
-    let v: i32 = func_run
-        .call_typed(&mut store, Value::String("It works!".into()))
+    let v: (String, String) = func_run
+        .call_typed(&mut store, &[Value::String("It works!".into())][..])
         .unwrap();
 
     tracing::info!("received value: {v:?}");
 
-    assert_eq!(v, 9);
+    assert_eq!(v, ("IT WORKS!".to_string(), "!skrow tI".to_string()));
 
     // let func_run = interface
     //     .func("run")

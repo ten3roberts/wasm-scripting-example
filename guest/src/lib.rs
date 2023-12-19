@@ -8,11 +8,12 @@ wit_bindgen::generate!({
 struct Host;
 
 impl Guest for Host {
-    fn run(s: String) -> i32 {
+    fn run(mut s: Vec<String>) -> (String, String) {
+        let s = s.pop().unwrap();
         // assert_eq!(s, "Hello, World!");
         // assert_eq!(arg1, 7);
         // assert_eq!(arg2, 3);
-        s.len() as _
+        (s.to_uppercase(), s.chars().rev().collect())
     }
 
     // fn run(args: Vec<String>) -> Result<i32, String> {
