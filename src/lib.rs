@@ -1,4 +1,6 @@
-use wasm_component_layer::{Component, Linker, Tuple, TupleType, TypedFunc, Value, ValueType};
+use wasm_component_layer::{
+    Component, Linker, List, ListType, Tuple, TupleType, TypedFunc, Value, ValueType,
+};
 use wasm_runtime_layer::Engine;
 
 const GUEST_BYTES: &[u8] = include_bytes!("../bin/guest.wasm");
@@ -128,18 +130,39 @@ pub fn run() -> anyhow::Result<()> {
         .func("run")
         .ok_or_else(|| anyhow::anyhow!("no such function"))?;
 
+    let func_run_many = interface
+        .func("run-many")
+        .ok_or_else(|| anyhow::anyhow!("no such function"))?;
+
+    let func_run_list = interface
+        .func("run-list")
+        .ok_or_else(|| anyhow::anyhow!("no such function"))?;
+
     let v: Value = func_run
-        .call_typed(&mut store, &["Hello, World!".to_string()][..])
+        .call_typed(&mut store, vec!["Hello, World!".to_string()])
         .unwrap();
+
     tracing::info!("received value: {v:?}");
 
     assert_eq!(
         v,
         (Value::Tuple(
             Tuple::new(
-                TupleType::new(None, [ValueType::String, ValueType::String]),
+                TupleType::new(
+                    None,
+                    [
+                        ValueType::List(ListType::new(ValueType::String)),
+                        ValueType::String
+                    ]
+                ),
                 vec![
-                    Value::String("HELLO, WORLD!".into()),
+                    Value::List(
+                        List::new(
+                            ListType::new(ValueType::String),
+                            vec![Value::String("HELLO, WORLD!".into()),]
+                        )
+                        .unwrap()
+                    ),
                     Value::String("!dlroW ,olleH".into()),
                 ]
             )
@@ -147,13 +170,47 @@ pub fn run() -> anyhow::Result<()> {
         ))
     );
 
-    let v: (String, String) = func_run
-        .call_typed(&mut store, &[Value::String("It works!".into())][..])
+    let v: (Vec<String>, String) = func_run
+        .call_typed(
+            &mut store,
+            Value::List(
+                List::new(
+                    ListType::new(ValueType::String),
+                    [Value::String("It works!".into())],
+                )
+                .unwrap(),
+            ),
+        )
         .unwrap();
 
     tracing::info!("received value: {v:?}");
+    assert_eq!(v, (vec!["IT WORKS!".to_string()], "!skrow tI".to_string()));
 
-    assert_eq!(v, ("IT WORKS!".to_string(), "!skrow tI".to_string()));
+    let v: Vec<i32> = func_run_many
+        .call_typed(
+            &mut store,
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17),
+        )
+        .unwrap();
+
+    assert_eq!(
+        v,
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,]
+    );
+
+    let v: Vec<Vec<i32>> = func_run_list
+        .call_typed(
+            &mut store,
+            &[List::new(
+                ListType::new(ValueType::S32),
+                [Value::S32(4), Value::S32(2)],
+            )
+            .unwrap()][..],
+        )
+        .unwrap();
+
+    assert_eq!(v, [[4, 2]]);
+    tracing::debug!(?v);
 
     // let func_run = interface
     //     .func("run")

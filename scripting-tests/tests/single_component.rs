@@ -14,6 +14,7 @@ pub fn single_component() {
         .exports()
         .instance(&"test:guest/foo".try_into().unwrap())
         .unwrap();
+
     // Get the function for selecting a list element.
     let select_nth = interface
         .func("select-nth")
