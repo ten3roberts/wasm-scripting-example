@@ -1,5 +1,6 @@
 use wasm_component_layer::{
-    Component, Linker, List, ListType, Tuple, TupleType, TypedFunc, Value, ValueType,
+    Component, Linker, List, ListType, Tuple, TupleType, TypedFunc, Value, ValueType, Variant,
+    VariantCase, VariantType,
 };
 use wasm_runtime_layer::Engine;
 
@@ -138,6 +139,10 @@ pub fn run() -> anyhow::Result<()> {
         .func("run-list")
         .ok_or_else(|| anyhow::anyhow!("no such function"))?;
 
+    let func_run_variant = interface
+        .func("run-variant")
+        .ok_or_else(|| anyhow::anyhow!("no such function"))?;
+
     let v: Value = func_run
         .call_typed(&mut store, vec!["Hello, World!".to_string()])
         .unwrap();
@@ -212,6 +217,50 @@ pub fn run() -> anyhow::Result<()> {
     assert_eq!(v, [[4, 2]]);
     tracing::debug!(?v);
 
+    tracing::info_span!("run-variant").in_scope(|| {
+        let variant_ty = VariantType::new(
+            None,
+            [
+                VariantCase::new("A", None),
+                VariantCase::new("B", Some(ValueType::String)),
+                VariantCase::new("C", Some(ValueType::String)),
+            ],
+        )
+        .unwrap();
+
+        let v: Value = func_run_variant
+            .call_typed(
+                &mut store,
+                Value::List(
+                    List::new(
+                        ListType::new(ValueType::List(ListType::new(ValueType::Variant(
+                            variant_ty.clone(),
+                        )))),
+                        [Value::List(
+                            List::new(
+                                ListType::new(ValueType::Variant(variant_ty.clone())),
+                                [
+                                    Value::Variant(
+                                        Variant::new(
+                                            variant_ty.clone(),
+                                            1,
+                                            Some(Value::String("Request".into())),
+                                        )
+                                        .unwrap(),
+                                    ),
+                                    Value::Variant(Variant::new(variant_ty, 0, None).unwrap()),
+                                ],
+                            )
+                            .unwrap(),
+                        )],
+                    )
+                    .unwrap(),
+                ),
+            )
+            .unwrap();
+
+        tracing::debug!(?v, "result");
+    });
     // let func_run = interface
     //     .func("run")
     //     .ok_or_else(|| anyhow::anyhow!("no such function"))?

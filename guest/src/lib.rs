@@ -1,3 +1,5 @@
+use std::net::ToSocketAddrs;
+
 wit_bindgen::generate!({
     world: "main",
     exports : {
@@ -49,6 +51,15 @@ impl Guest for Host {
 
     fn run_list(s: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
         s
+    }
+
+    fn run_variant(v: Vec<MyVariant>) -> MyVariant {
+        match &v[..] {
+            [MyVariant::B(v), MyVariant::A] if v == "Request" => {
+                MyVariant::B("Hello, World".into())
+            }
+            _ => unreachable!(),
+        }
     }
 
     // fn run(args: Vec<String>) -> Result<i32, String> {
