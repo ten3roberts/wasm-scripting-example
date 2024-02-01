@@ -1,6 +1,6 @@
 use wasm_component_layer::{
-    Component, Linker, List, ListType, Tuple, TupleType, TypedFunc, Value, ValueType, Variant,
-    VariantCase, VariantType,
+    Component, Linker, List, ListType, Record, RecordType, Tuple, TupleType, TypedFunc, Value,
+    ValueType, Variant, VariantCase, VariantType,
 };
 use wasm_runtime_layer::Engine;
 
@@ -143,6 +143,10 @@ pub fn run() -> anyhow::Result<()> {
         .func("run-variant")
         .ok_or_else(|| anyhow::anyhow!("no such function"))?;
 
+    let func_run_record = interface
+        .func("run-record")
+        .ok_or_else(|| anyhow::anyhow!("no such function"))?;
+
     let v: Value = func_run
         .call_typed(&mut store, vec!["Hello, World!".to_string()])
         .unwrap();
@@ -260,6 +264,68 @@ pub fn run() -> anyhow::Result<()> {
             .unwrap();
 
         tracing::debug!(?v, "result");
+    });
+
+    tracing::info_span!("run-record").in_scope(|| {
+        let ty = RecordType::new(None, [("a", ValueType::S32), ("b", ValueType::String)]).unwrap();
+
+        let v: Value = func_run_record
+            .call_typed(
+                &mut store,
+                Value::List(
+                    List::new(
+                        ListType::new(ValueType::List(ListType::new(ValueType::Record(
+                            ty.clone(),
+                        )))),
+                        [Value::List(
+                            List::new(
+                                ListType::new(ValueType::Record(ty.clone())),
+                                [
+                                    Value::Record(
+                                        Record::new(
+                                            ty.clone(),
+                                            vec![
+                                                ("a", Value::S32(42)),
+                                                ("b", Value::String("Hello, ".into())),
+                                            ],
+                                        )
+                                        .unwrap(),
+                                    ),
+                                    Value::Record(
+                                        Record::new(
+                                            ty.clone(),
+                                            vec![
+                                                ("a", Value::S32(24)),
+                                                ("b", Value::String("World".into())),
+                                            ],
+                                        )
+                                        .unwrap(),
+                                    ),
+                                ],
+                            )
+                            .unwrap(),
+                        )],
+                    )
+                    .unwrap(),
+                ),
+            )
+            .unwrap();
+
+        tracing::info!(?v, "result");
+
+        assert_eq!(
+            v,
+            Value::Record(
+                Record::new(
+                    ty,
+                    vec![
+                        ("a", Value::S32(66)),
+                        ("b", Value::String("Hello, World".into())),
+                    ]
+                )
+                .unwrap()
+            )
+        );
     });
     // let func_run = interface
     //     .func("run")

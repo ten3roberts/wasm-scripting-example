@@ -1,5 +1,3 @@
-use std::net::ToSocketAddrs;
-
 wit_bindgen::generate!({
     world: "main",
     exports : {
@@ -53,15 +51,43 @@ impl Guest for Host {
         s
     }
 
-    fn run_variant(v: Vec<MyVariant>) -> MyVariant {
-        match &v[..] {
-            [MyVariant::B(v), MyVariant::A] if v == "Request" => {
-                MyVariant::B("Hello, World".into())
-            }
-            _ => unreachable!(),
+    fn run_variant(v: Vec<Vec<MyVariant>>) -> MyVariant {
+        let [v] = &v[..] else {
+            panic!("invalid arguments");
+        };
+
+        let [MyVariant::B(v), MyVariant::A] = &v[..] else {
+            panic!("invalid arguments");
+        };
+
+        if v == "request" {
+            MyVariant::B("Hello, World".into())
+        } else {
+            MyVariant::A
         }
     }
 
+    fn run_record(v: Vec<Vec<MyRecord>>) -> MyRecord {
+        let [v] = &v[..] else {
+            panic!("invalid arguments");
+        };
+
+        let [v1, v2] = &v[..] else {
+            panic!("invalid arguments");
+        };
+
+        MyRecord {
+            a: v1.a + v2.a,
+            b: format!("{}{}", v1.b, v2.b),
+        }
+    }
+
+    fn run_record_flat(v: MyRecord) -> MyRecord {
+        MyRecord {
+            a: -v.a,
+            b: v.b.to_lowercase(),
+        }
+    }
     // fn run(args: Vec<String>) -> Result<i32, String> {
     //     if args == ["guest", "Hello"] {
     //         print("Hello from the other side");
