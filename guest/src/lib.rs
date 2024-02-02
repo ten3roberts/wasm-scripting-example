@@ -88,6 +88,10 @@ impl Guest for Host {
             b: v.b.to_lowercase(),
         }
     }
+
+    fn run_odd_align(v: Vec<(u64, u8)>) -> Vec<(u64, u8)> {
+        v
+    }
     // fn run(args: Vec<String>) -> Result<i32, String> {
     //     if args == ["guest", "Hello"] {
     //         print("Hello from the other side");

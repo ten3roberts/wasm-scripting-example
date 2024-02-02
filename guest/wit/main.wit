@@ -10,6 +10,8 @@ world main {
     export run-record: func(v: list<list<my-record>>) -> my-record;
     export run-record-flat: func(v: my-record) -> my-record;
 
+    export run-odd-align: func(v: list<tuple<u64, u8>>) -> list<tuple<u64, u8>>;
+
     variant my-variant {
         a,
         b(string),
@@ -17,7 +19,7 @@ world main {
     }
 
     record my-record {
-        a: s32,
+        a: s16,
         b: string,
     }
 

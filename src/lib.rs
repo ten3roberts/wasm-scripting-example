@@ -147,53 +147,78 @@ pub fn run() -> anyhow::Result<()> {
         .func("run-record")
         .ok_or_else(|| anyhow::anyhow!("no such function"))?;
 
-    let v: Value = func_run
-        .call_typed(&mut store, vec!["Hello, World!".to_string()])
-        .unwrap();
+    let func_odd_align = interface
+        .func("run-odd-align")
+        .ok_or_else(|| anyhow::anyhow!("no such function"))?;
 
-    tracing::info!("received value: {v:?}");
-
-    assert_eq!(
-        v,
-        (Value::Tuple(
-            Tuple::new(
-                TupleType::new(
-                    None,
-                    [
-                        ValueType::List(ListType::new(ValueType::String)),
-                        ValueType::String
-                    ]
-                ),
-                vec![
-                    Value::List(
-                        List::new(
-                            ListType::new(ValueType::String),
-                            vec![Value::String("HELLO, WORLD!".into()),]
-                        )
-                        .unwrap()
+    tracing::info_span!("tuple-odd-align").in_scope(|| {
+        let tuple_ty = TupleType::new(None, [ValueType::U64, ValueType::U8]);
+        let v: Vec<Value> = func_odd_align
+            .call_typed(
+                &mut store,
+                &[
+                    Value::Tuple(
+                        Tuple::new(tuple_ty.clone(), vec![Value::U64(42), Value::U8(24)]).unwrap(),
                     ),
-                    Value::String("!dlroW ,olleH".into()),
-                ]
+                    Value::Tuple(
+                        Tuple::new(tuple_ty, vec![Value::U64(42), Value::U8(24)]).unwrap(),
+                    ),
+                ][..],
             )
-            .unwrap()
-        ))
-    );
+            .unwrap();
 
-    let v: (Vec<String>, String) = func_run
-        .call_typed(
-            &mut store,
-            Value::List(
-                List::new(
-                    ListType::new(ValueType::String),
-                    [Value::String("It works!".into())],
+        tracing::debug!(?v, "result");
+    });
+
+    tracing::info_span!("run-basic").in_scope(|| {
+        let v: Value = func_run
+            .call_typed(&mut store, vec!["Hello, World!".to_string()])
+            .unwrap();
+
+        tracing::info!("received value: {v:?}");
+
+        assert_eq!(
+            v,
+            (Value::Tuple(
+                Tuple::new(
+                    TupleType::new(
+                        None,
+                        [
+                            ValueType::List(ListType::new(ValueType::String)),
+                            ValueType::String
+                        ]
+                    ),
+                    vec![
+                        Value::List(
+                            List::new(
+                                ListType::new(ValueType::String),
+                                vec![Value::String("HELLO, WORLD!".into()),]
+                            )
+                            .unwrap()
+                        ),
+                        Value::String("!dlroW ,olleH".into()),
+                    ]
                 )
-                .unwrap(),
-            ),
-        )
-        .unwrap();
+                .unwrap()
+            ))
+        );
 
-    tracing::info!("received value: {v:?}");
-    assert_eq!(v, (vec!["IT WORKS!".to_string()], "!skrow tI".to_string()));
+        let v: (Vec<String>, String) = func_run
+            .call_typed(
+                &mut store,
+                Value::List(
+                    List::new(
+                        ListType::new(ValueType::String),
+                        [Value::String("It works!".into())],
+                    )
+                    .unwrap(),
+                ),
+            )
+            .unwrap();
+
+        tracing::info!("received value: {v:?}");
+        assert_eq!(v, (vec!["IT WORKS!".to_string()], "!skrow tI".to_string()));
+    });
 
     let v: Vec<i32> = func_run_many
         .call_typed(
@@ -267,7 +292,7 @@ pub fn run() -> anyhow::Result<()> {
     });
 
     tracing::info_span!("run-record").in_scope(|| {
-        let ty = RecordType::new(None, [("a", ValueType::S32), ("b", ValueType::String)]).unwrap();
+        let ty = RecordType::new(None, [("a", ValueType::S16), ("b", ValueType::String)]).unwrap();
 
         let v: Value = func_run_record
             .call_typed(
@@ -285,7 +310,7 @@ pub fn run() -> anyhow::Result<()> {
                                         Record::new(
                                             ty.clone(),
                                             vec![
-                                                ("a", Value::S32(42)),
+                                                ("a", Value::S16(42)),
                                                 ("b", Value::String("Hello, ".into())),
                                             ],
                                         )
@@ -295,7 +320,7 @@ pub fn run() -> anyhow::Result<()> {
                                         Record::new(
                                             ty.clone(),
                                             vec![
-                                                ("a", Value::S32(24)),
+                                                ("a", Value::S16(24)),
                                                 ("b", Value::String("World".into())),
                                             ],
                                         )
@@ -319,7 +344,7 @@ pub fn run() -> anyhow::Result<()> {
                 Record::new(
                     ty,
                     vec![
-                        ("a", Value::S32(66)),
+                        ("a", Value::S16(66)),
                         ("b", Value::String("Hello, World".into())),
                     ]
                 )
@@ -327,28 +352,6 @@ pub fn run() -> anyhow::Result<()> {
             )
         );
     });
-    // let func_run = interface
-    //     .func("run")
-    //     .ok_or_else(|| anyhow::anyhow!("no such function"))?
-    //     .typed::<Vec<String>, Result<i32, String>>()?;
-
-    // let func_get_name = interface
-    //     .func("get-guest-name")
-    //     .ok_or_else(|| anyhow::anyhow!("no such function"))?
-    //     .typed::<(), String>()?;
-
-    // let result = func_run
-    //     .call(&mut store, vec!["guest".into(), "Hello".into()])
-    //     .context("Failed to call `run`")?;
-
-    // tracing::info!(?result, "result");
-
-    // assert_eq!(result, Ok(42));
-
-    // let result = func_get_name.call(&mut store, ())?;
-    // tracing::info!("received name: {result:?}");
-
-    // assert_eq!(result, "guest-module");
 
     Ok(())
 }
